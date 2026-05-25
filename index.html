@@ -720,7 +720,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 .type-biz { background: #fce4ec; color: #c62828; }
 .prompt-title { flex: 1; font-size: 13px; font-weight: 500; }
 .eval-tags { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
-.eval-tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #f0f4ff; color: #4d6bfe; font-weight: 400; }
+.eval-tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #f0f4ff; color: #4d6bfe; font-weight: 400; cursor: help; }
 .eval-check { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; margin-left: 4px; }
 .eval-check .pass { color: #2e7d32; }
 .eval-check .fail { color: #c62828; }
@@ -1338,12 +1338,13 @@ function renderCompare() {
   const epContainer = document.getElementById('compare-eval-points');
   if (epContainer && p && p.eval_points) {
     epContainer.innerHTML = p.eval_points.map((e, i) => {
-      const icons = MODELS.map(m => {
+      const tips = []; const icons = MODELS.map(m => {
         const c = checks[`${id}_${m}`];
         if (!c || !c[i]) return '';
-        return c[i].pass ? `<span class="pass" title="${MODEL_NAMES[m]}: ${c[i].reason||'通过'}">✓</span>` : `<span class="fail" title="${MODEL_NAMES[m]}: ${c[i].reason||'未通过'}">✗</span>`;
+        tips.push(`${MODEL_NAMES[m]}: ${c[i].pass?'✓':'✗'} ${c[i].reason||''}`);
+        return c[i].pass ? `<span class="pass">✓</span>` : `<span class="fail">✗</span>`;
       }).join('');
-      return `<span class="eval-tag">${e}<span class="eval-check">${icons}</span></span>`;
+      return `<span class="eval-tag" title="${tips.join('\n')}">${e}<span class="eval-check">${icons}</span></span>`;
     }).join('');
   } else if (epContainer) {
     epContainer.innerHTML = '';
