@@ -1297,9 +1297,22 @@ function searchPrompts(kw) { currentKeyword = kw; renderPrompts(currentFilter, c
 
 function showPromptDetail(id) {
   const p = prompts.find(x => x.id === id);
-  const epHtml = (p.eval_points||[]).map(e => `<span class="eval-tag">${e}</span>`).join('');
+  let checkTable = '';
+  if (p.eval_points && p.eval_points.length) {
+    checkTable = '<table style="width:100%;border-collapse:collapse;font-size:12px;margin:12px 0"><thead><tr style="background:#f8f9fa"><th style="padding:8px;text-align:left">评估点</th><th style="padding:8px;text-align:center;color:#e74c3c">文心</th><th style="padding:8px;text-align:center;color:#10a37f">GPT</th><th style="padding:8px;text-align:center;color:#4d6bfe">DeepSeek</th></tr></thead><tbody>' +
+      p.eval_points.map((e, i) => {
+        const cells = MODELS.map(m => {
+          const c = checks[`${id}_${m}`];
+          if (!c || !c[i]) return '<td style="padding:6px 8px;text-align:center;border-top:1px solid #f0f0f0">-</td>';
+          const icon = c[i].pass ? '✓' : '✗';
+          const color = c[i].pass ? '#2e7d32' : '#c62828';
+          return `<td style="padding:6px 8px;text-align:center;border-top:1px solid #f0f0f0"><span style="color:${color};font-weight:700">${icon}</span> <span style="color:#666">${c[i].reason||''}</span></td>`;
+        }).join('');
+        return `<tr><td style="padding:6px 8px;border-top:1px solid #f0f0f0">${e}</td>${cells}</tr>`;
+      }).join('') + '</tbody></table>';
+  }
   document.getElementById('modalBody').innerHTML = `<h2 style="margin-bottom:8px">#${id} ${p.title}</h2><p style="color:#888;margin-bottom:12px">${p.type}</p>
-    ${epHtml ? '<div style="margin-bottom:14px"><strong style="font-size:12px;color:#666">评估点：</strong>'+epHtml+'</div>' : ''}
+    ${checkTable}
     <div style="display:flex;gap:8px;margin-bottom:16px">
       ${MODELS.map(m => `<span style="font-size:12px;padding:3px 8px;border-radius:4px;background:${hasData(m,id)?'#e8f5e9':'#f5f5f5'};color:${hasData(m,id)?'#2e7d32':'#999'}">${MODEL_NAMES[m]}: ${hasData(m,id)?'✓':'✗'}</span>`).join('')}
     </div>
@@ -1340,17 +1353,18 @@ function renderCompare() {
   const p = prompts.find(x => x.id == id);
   const epContainer = document.getElementById('compare-eval-points');
   if (epContainer && p && p.eval_points) {
-    epContainer.innerHTML = p.eval_points.map((e, i) => {
-      const lines = []; const icons = MODELS.map(m => {
-        const c = checks[`${id}_${m}`];
-        if (!c || !c[i]) return '';
-        const r = c[i].reason || '';
-        lines.push(`<span style="color:${MODEL_COLORS[m]}">${MODEL_NAMES[m]}: ${c[i].pass?'✓':'✗'} ${r}</span>`);
-        return `<span style="color:${MODEL_COLORS[m]}">${c[i].pass?'✓':'✗'}</span>`;
-      }).join('');
-      const tooltip = lines.length ? `<div class="eval-tooltip">${lines.join('<br>')}</div>` : '';
-      return `<span class="eval-tag">${e}<span class="eval-check">${icons}</span>${tooltip}</span>`;
-    }).join('');
+    epContainer.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><thead><tr style="background:#f8f9fa"><th style="padding:8px;text-align:left">评估点</th><th style="padding:8px;text-align:center;color:#e74c3c">文心</th><th style="padding:8px;text-align:center;color:#10a37f">GPT</th><th style="padding:8px;text-align:center;color:#4d6bfe">DeepSeek</th></tr></thead><tbody>' +
+      p.eval_points.map((e, i) => {
+        const cells = MODELS.map(m => {
+          const c = checks[`${id}_${m}`];
+          if (!c || !c[i]) return '<td style="padding:6px 8px;text-align:center;border-top:1px solid #f0f0f0">-</td>';
+          const icon = c[i].pass ? '✓' : '✗';
+          const color = c[i].pass ? '#2e7d32' : '#c62828';
+          const reason = c[i].reason || '';
+          return `<td style="padding:6px 8px;text-align:center;border-top:1px solid #f0f0f0"><span style="color:${color};font-weight:700">${icon}</span> <span style="color:#666;font-size:11px">${reason}</span></td>`;
+        }).join('');
+        return `<tr><td style="padding:6px 8px;border-top:1px solid #f0f0f0;color:#4d6bfe">${e}</td>${cells}</tr>`;
+      }).join('') + '</tbody></table>';
   } else if (epContainer) {
     epContainer.innerHTML = '';
   }
