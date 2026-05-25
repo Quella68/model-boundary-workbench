@@ -721,9 +721,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC'
 .prompt-title { flex: 1; font-size: 13px; font-weight: 500; }
 .eval-tags { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
 .eval-tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; background: #f0f4ff; color: #4d6bfe; font-weight: 400; cursor: help; }
-.eval-check { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; margin-left: 4px; }
-.eval-check .pass { color: #2e7d32; }
-.eval-check .fail { color: #c62828; }
+.eval-check { display: inline-flex; align-items: center; gap: 1px; font-size: 10px; margin-left: 4px; }
+.eval-check .pass { font-weight: 700; }
+.eval-check .fail { font-weight: 700; }
 .eval-completion { font-size: 11px; color: #888; margin-left: 8px; }
 .prompt-scores { font-size: 11px; color: #888; min-width: 120px; text-align: right; }
 .prompt-status { display: flex; gap: 4px; }
@@ -1264,7 +1264,7 @@ function renderPrompts(filter, keyword) {
       const icons = MODELS.map(m => {
         const c = checks[`${p.id}_${m}`];
         if (!c || !c[i]) return '';
-        return c[i].pass ? `<span class="pass">✓</span>` : `<span class="fail">✗</span>`;
+        return `<span style="color:${MODEL_COLORS[m]}">${c[i].pass?'✓':'✗'}</span>`;
       }).join('');
       return `<span class="eval-tag">${e}<span class="eval-check">${icons}</span></span>`;
     }).join('');
@@ -1341,10 +1341,12 @@ function renderCompare() {
       const tips = []; const icons = MODELS.map(m => {
         const c = checks[`${id}_${m}`];
         if (!c || !c[i]) return '';
-        tips.push(`${MODEL_NAMES[m]}: ${c[i].pass?'✓':'✗'} ${c[i].reason||''}`);
-        return c[i].pass ? `<span class="pass">✓</span>` : `<span class="fail">✗</span>`;
+        const r = c[i].reason || '';
+        tips.push(MODEL_NAMES[m] + ': ' + (c[i].pass?'✓ ':'✗ ') + r);
+        return `<span style="color:${MODEL_COLORS[m]}">${c[i].pass?'✓':'✗'}</span>`;
       }).join('');
-      return `<span class="eval-tag" title="${tips.join('\n')}">${e}<span class="eval-check">${icons}</span></span>`;
+      const safeTitle = tips.join('&#10;').replace(/"/g,'&quot;');
+      return `<span class="eval-tag" title="${safeTitle}">${e}<span class="eval-check">${icons}</span></span>`;
     }).join('');
   } else if (epContainer) {
     epContainer.innerHTML = '';
